@@ -339,6 +339,11 @@
         <param index="6" reserved="true" default="0"/>
         <param index="7" reserved="true" default="NaN"/>
       </entry>
+      <entry value="404" name="MAV_CMD_GENERIC_PAYLOAD_FUNCTIONS_CONTROL" hasLocation="false" isDestination="false">
+        <description>Allows for enable/disable control over function(s) of a generic payload.</description>
+        <param index="1" label="Index" minValue="0" increment="1">Index of Function</param>
+        <param index="2" label="Enable" minValue="0" maxValue="1" increment="1">0: Disable, 1: Enable</param>
+      </entry>
       <entry value="550" name="MAV_CMD_SET_AT_S_PARAM" hasLocation="false" isDestination="false">
         <description>Allows setting an AT S command of an SiK radio.
         </description>
@@ -567,6 +572,20 @@
         <description>RAIM integrity check failed.</description>
       </entry>
     </enum>
+    <enum name="GENERIC_PAYLOAD_ERROR_FLAGS">
+      <entry value="1" name="GENERIC_PAYLOAD_ERROR_FLAGS_SOFTWARE_ERROR">
+        <description>There is an error with the generic payload's software.</description>
+      </entry>
+      <entry value="2" name="GENERIC_PAYLOAD_ERROR_FLAGS_HARDWARE_ERROR">
+        <description>There is an error with the generic payload's hardware.</description>
+      </entry>
+      <entry value="4" name="GENERIC_PAYLOAD_ERROR_FLAGS_OVERTEMP_FAULT">
+        <description>A specified limit has been reached by the generic paylod's temperature sensor. This only applies if the generic payload monitors temperature.</description>
+      </entry>
+      <entry value="8" name="GENERIC_PAYLOAD_ERROR_FLAGS_CUSTOM">
+        <description>Generic payload custom failure, see custom error flag bitmask for details.</description>
+      </entry>
+    </enum>
   </enums>
   <messages>
     <!-- Transactions for parameter protocol -->
@@ -671,6 +690,24 @@
       <field type="float" name="flow_rate" invalid="NaN">Positive value when emptying/using, and negative if filling/replacing. NaN: field not provided.</field>
       <field type="float" name="temperature" units="K" invalid="NaN">Fuel temperature. NaN: field not provided.</field>
       <field type="uint32_t" name="fuel_type" enum="MAV_FUEL_TYPE">Fuel type. Defines units for fuel capacity and consumption fields above.</field>
+    </message>
+    <message id="398" name="GENERIC_PAYLOAD_STATUS">
+      <description>Generic payload status.</description>
+      <field type="uint32_t" name="uptime_ms" units="ms">Time since the start-up of the generic payload in ms</field>
+      <field type="char[32]" name="name">Generic payload name to be used in UI. This is a NULL terminated string. If it is exactly 32 characters long, add a terminating NULL. If this string is empty, a generic name is shown to the user.</field>
+      <field type="uint16_t" name="function_count">Total number of functions on the generic payload that can be controlled.</field>
+      <field type="uint32_t" name="error_flags" enum="GENERIC_PAYLOAD_ERROR_FLAGS" display="bitmask">Errors</field>
+      <field type="uint32_t" name="custom_error_flags" display="bitmask">Bitmap used to show custom error flags.</field>
+      <field type="float" name="power_draw" units="W" invalid="NaN">The power draw of the generic payload. NaN: field not provided</field>
+      <field type="uint16_t" name="weight" units="g" invalid="0">Generic payload weight. 0: field not provided.</field>
+      <field type="float" name="temp_c" invalid="NaN">Temperature in Celsius. NaN: field not provided.</field>
+    </message>
+    <message id="399" name="GENERIC_PAYLOAD_FUNCTION_STATUS">
+      <description>Generic payload function status.</description>
+      <field type="char[32]" name="name">Generic payload function name to be used in UI. This is a NULL terminated string. If it is exactly 32 characters long, add a terminating NULL. If this string is empty, a generic name is shown to the user.</field>
+      <field type="uint16_t" name="index">Index of this function on the generic payload.</field>
+      <field type="uint8_t" name="enable">0: Disable, 1: Enable</field>
+      <field type="uint16_t" name="function_count">Total number of functions on the generic payload that can be controlled.</field>
     </message>
     <message id="414" name="GROUP_START">
       <description>Emitted during mission execution when control reaches MAV_CMD_GROUP_START.</description>
