@@ -36,10 +36,10 @@
     </enum>
     <enum name="MAV_PROTOCOL_CAPABILITY" bitmask="true">
       <description>Bitmask of (optional) autopilot capabilities (64 bit). If a bit is set, the autopilot supports this capability.</description>
-      <entry value="262144" name="MAV_PROTOCOL_CAPABILITY_INDOOR_OBSTACLE_AVOIDANCE">
+      <entry value="4194304" name="MAV_PROTOCOL_CAPABILITY_INDOOR_OBSTACLE_AVOIDANCE">
         <description>Autopilot is capable of indoor obstacle avoidance. The obstacle visualization range (i.e. omnidirectional or single direction) is not determined by this flag and is system specific.</description>
       </entry>
-      <entry value="524288" name="MAV_PROTOCOL_CAPABILITY_OUTDOOR_OBSTACLE_AVOIDANCE">
+      <entry value="8388608" name="MAV_PROTOCOL_CAPABILITY_OUTDOOR_OBSTACLE_AVOIDANCE">
         <description>Autopilot is capable of outdoor obstacle avoidance. The obstacle visualization range (i.e. omnidirectional or single direction) is not determined by this flag and is system specific.</description>
       </entry>
       <entry value="1048576" name="MAV_PROTOCOL_CAPABILITY_VIO_AUTONOMOUS_NAVIGATION">
