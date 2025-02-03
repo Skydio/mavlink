@@ -6,15 +6,13 @@
   <version>0</version>
   <dialect>0</dialect>
   <enums>
-    </enum>
     <!-- The MAV_CMD enum entries describe either: -->
     <!--  * the data payload of mission items (as used in the MISSION_ITEM_INT message) -->
     <!--  * the data payload of mavlink commands (as used in the COMMAND_INT and COMMAND_LONG messages) -->
     <!-- ALL the entries in the MAV_CMD enum have a maximum of 7 parameters -->
     <enum name="MAV_CMD">
       <entry value="51051" name="MAV_CMD_PILOT_DEFINED_VEHICLE_GPS" hasLocation="true" isDestination="false">
-        <wip/>
-        <description>User defined current global pose of the vehicle. This is exclusively sent from t
+        <description>User defined current global pose of the vehicle. This is exclusively sent from the GCS to the vehicle.</description>
         <param index="1">Unused. To utilize this parameter update the RAS-A standard</param>
         <param index="1">Unused. To utilize this parameter update the RAS-A standard</param>
         <param index="2">Unused. To utilize this parameter update the RAS-A standard</param>
