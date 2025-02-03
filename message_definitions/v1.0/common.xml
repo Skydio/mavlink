@@ -4598,6 +4598,9 @@
       <entry value="2" name="TUNE_FORMAT_MML_MODERN">
         <description>Format is Modern Music Markup Language (MML): https://en.wikipedia.org/wiki/Music_Macro_Language#Modern_MML.</description>
       </entry>
+      <entry value="3" name="TUNE_FORMAT_URI">
+        <description>Format is file name of audio file loaded onto vehicle</description>
+      </entry>
     </enum>
     <!-- AIS related enums-->
     <enum name="AIS_TYPE">
