@@ -55,6 +55,17 @@
     <!-- ALL the entries in the MAV_CMD enum have a maximum of 7 parameters -->
     <enum name="MAV_CMD">
       <description>Commands to be executed by the MAV. They can be executed on user request, or as part of a mission script. If the action is used in a mission, the parameter mapping to the waypoint/mission message is as follows: Param 1, Param 2, Param 3, Param 4, X: Param 5, Y:Param 6, Z:Param 7. This command list is similar what ARINC 424 is for commercial aircraft: A data format how to interpret waypoint/mission data. NaN and INT32_MAX may be used in float/integer params (respectively) to indicate optional/default values (e.g. to use the component's current yaw or latitude rather than a specific value). See https://mavlink.io/en/guide/xml_schema.html#MAV_CMD for information about the structure of the MAV_CMD entries</description>
+      <entry value="5550" name="MAV_CMD_DO_SET_RF" hasLocation="false" isDestination="false">
+        <description> Channel-bandwidth pair used with Dynamic Channel Switching (DCS).</description>
+        <param index="1" label="Bandwidth" units="MHz"> Bandwidth for given channel</param>
+        <param index="2" label="Channel" units="MHz"> Radio Frequency</param>
+      </entry>
+      <entry value="5551" name="MAV_CMD_DO_DCS_ENABLE" hasLocation="false" isDestination="false">
+        <description> Enable/disable DCS once a full channel list is provided.</description>
+        <param index="1" label="Enable/Disable"> enable? (0=disable, 1=enable)</param>
+        <param index="2" label="Channel" units="MHz" default="NaN"> Channel to switch to post action. NaN: Use channel index 1</param>
+        <param index="3" label="Bandwidth" units="MHz" default="NaN"> Bandwidth to switch to post action. NaN: Only if use channel is also NaN</param>
+      </entry>
       <entry value="51000" name="MAV_CMD_GO_THROUGH_PORTAL" hasLocation="true" isDestination="false">
         <wip/>
         <!-- This command is work-in-progress and it can therefore change. It should NOT be used in stable production environments. -->
@@ -243,6 +254,12 @@
       </entry>
       <entry value="7" name="POI_GEOMETRY_TYPE_CYLINDER">
         <description>Cylinder.</description>
+      </entry>
+    </enum>
+    <enum name="MAV_MISSION_TYPE">
+      <description>Type of mission items being requested/sent in mission protocol.</description>
+      <entry value="3" name="MAV_MISSION_TYPE_RADIO">
+        <description>Specifies the channel switching frequencies. Items are MAV_CMD_DO_SET_RF_ RadioFrequency items.</description>
       </entry>
     </enum>
     <enum name="POI_CLASSIFICATION">
