@@ -339,11 +339,7 @@
         <param index="6" reserved="true" default="0"/>
         <param index="7" reserved="true" default="NaN"/>
       </entry>
-      <entry value="404" name="MAV_CMD_GENERIC_PAYLOAD_FUNCTIONS_CONTROL" hasLocation="false" isDestination="false">
-        <description>Allows for enable/disable control over function(s) of a generic payload.</description>
-        <param index="1" label="Index" minValue="0" increment="1">Index of Function</param>
-        <param index="2" label="Enable" minValue="0" maxValue="1" increment="1">0: Disable, 1: Enable</param>
-      </entry>
+
       <entry value="550" name="MAV_CMD_SET_AT_S_PARAM" hasLocation="false" isDestination="false">
         <description>Allows setting an AT S command of an SiK radio.
         </description>
@@ -572,6 +568,48 @@
         <description>RAIM integrity check failed.</description>
       </entry>
     </enum>
+    <enum name="GENERIC_PAYLOAD_CONTROL_MODE">
+      <description>Control mode for generic payload functions.</description>
+      <entry value="0" name="GENERIC_PAYLOAD_CONTROL_MODE_LATCHING">
+        <description>Function maintains its state until explicitly changed (toggle on/off).</description>
+      </entry>
+      <entry value="1" name="GENERIC_PAYLOAD_CONTROL_MODE_MOMENTARY">
+        <description>Function is active when commanded and automatically deactivates after timeout_ms milliseconds. If timeout_ms is 0, a default timeout of 100ms is used.</description>
+      </entry>
+    </enum>
+    <enum name="GENERIC_PAYLOAD_VALUE_TYPE">
+      <description>Data type for generic payload function values.</description>
+      <entry value="0" name="GENERIC_PAYLOAD_VALUE_TYPE_INT32">
+        <description>32-bit signed integer.</description>
+      </entry>
+      <entry value="1" name="GENERIC_PAYLOAD_VALUE_TYPE_UINT32">
+        <description>32-bit unsigned integer.</description>
+      </entry>
+      <entry value="2" name="GENERIC_PAYLOAD_VALUE_TYPE_REAL32">
+        <description>32-bit IEEE-754 floating point.</description>
+      </entry>
+      <entry value="3" name="GENERIC_PAYLOAD_VALUE_TYPE_INT64">
+        <description>64-bit signed integer.</description>
+      </entry>
+      <entry value="4" name="GENERIC_PAYLOAD_VALUE_TYPE_UINT64">
+        <description>64-bit unsigned integer.</description>
+      </entry>
+      <entry value="5" name="GENERIC_PAYLOAD_VALUE_TYPE_REAL64">
+        <description>64-bit IEEE-754 floating point.</description>
+      </entry>
+    </enum>
+    <enum name="GENERIC_PAYLOAD_FUNCTION_TYPE">
+      <description>Type of generic payload function.</description>
+      <entry value="0" name="GENERIC_PAYLOAD_FUNCTION_TYPE_LOGICAL">
+        <description>Logical state control (true/false, on/off, high/low).</description>
+      </entry>
+      <entry value="1" name="GENERIC_PAYLOAD_FUNCTION_TYPE_CONTINUOUS">
+        <description>Continuous value control (e.g., servo angle, motor speed). Uses min/max for range.</description>
+      </entry>
+      <entry value="2" name="GENERIC_PAYLOAD_FUNCTION_TYPE_DISCRETE">
+        <description>Discrete value selection (e.g., mode number, PWM frequency). Uses min/max for valid range.</description>
+      </entry>
+    </enum>
     <enum name="GENERIC_PAYLOAD_ERROR_FLAGS">
       <entry value="1" name="GENERIC_PAYLOAD_ERROR_FLAGS_SOFTWARE_ERROR">
         <description>There is an error with the generic payload's software.</description>
@@ -692,22 +730,67 @@
       <field type="uint32_t" name="fuel_type" enum="MAV_FUEL_TYPE">Fuel type. Defines units for fuel capacity and consumption fields above.</field>
     </message>
     <message id="398" name="GENERIC_PAYLOAD_STATUS">
-      <description>Generic payload status.</description>
-      <field type="uint32_t" name="uptime_ms" units="ms">Time since the start-up of the generic payload in ms</field>
-      <field type="char[32]" name="name">Generic payload name to be used in UI. This is a NULL terminated string. If it is exactly 32 characters long, add a terminating NULL. If this string is empty, a generic name is shown to the user.</field>
-      <field type="uint16_t" name="function_count">Total number of functions on the generic payload that can be controlled.</field>
-      <field type="uint32_t" name="error_flags" enum="GENERIC_PAYLOAD_ERROR_FLAGS" display="bitmask">Errors</field>
-      <field type="uint32_t" name="custom_error_flags" display="bitmask">Bitmap used to show custom error flags.</field>
-      <field type="float" name="power_draw" units="W" invalid="NaN">The power draw of the generic payload. NaN: field not provided</field>
-      <field type="uint16_t" name="weight" units="g" invalid="0">Generic payload weight. 0: field not provided.</field>
-      <field type="float" name="temp_c" invalid="NaN">Temperature in Celsius. NaN: field not provided.</field>
+      <description>Status and discovery message for a generic payload. This should be broadcast at a low rate (nominally 1 Hz) to announce the payload's presence and capabilities.</description>
+      <field type="uint32_t" name="uptime_ms" units="ms">Time since payload boot.</field>
+      <field type="uint32_t" name="error_flags" enum="GENERIC_PAYLOAD_ERROR_FLAGS" display="bitmask">Current error flags.</field>
+      <field type="uint32_t" name="custom_error_flags" display="bitmask">Bitmap for custom error flags specific to this payload type.</field>
+      <field type="uint16_t" name="num_functions">Number of functions this payload provides.</field>
+      <field type="uint16_t" name="num_telemetry_channels">Number of telemetry channels this payload provides.</field>
+      <field type="char[32]" name="name">Name of the generic payload for UI display. NULL terminated string.</field>
+      <extensions/>
+      <field type="uint16_t" name="power_draw" units="mW" invalid="0">Power consumption of the payload. 0 if not available.</field>
+      <field type="uint16_t" name="temperature" invalid="UINT16_MAX">Temperature of the payload (0.002 degrees Celsius per unit, 0 = -40C). UINT16_MAX if not available.</field>
+      <field type="uint16_t" name="weight" units="g" invalid="0">Weight of the payload. 0 if not available.</field>
     </message>
     <message id="399" name="GENERIC_PAYLOAD_FUNCTION_STATUS">
       <description>Generic payload function status.</description>
-      <field type="char[32]" name="name">Generic payload function name to be used in UI. This is a NULL terminated string. If it is exactly 32 characters long, add a terminating NULL. If this string is empty, a generic name is shown to the user.</field>
       <field type="uint16_t" name="index">Index of this function on the generic payload.</field>
+      <field type="uint8_t" name="type" enum="GENERIC_PAYLOAD_FUNCTION_TYPE">Type of function.</field>
+      <field type="uint8_t" name="value_type" enum="GENERIC_PAYLOAD_VALUE_TYPE">Data type for value/min/max fields.</field>
+      <field type="uint8_t" name="enabled">0: Disabled, 1: Enabled</field>
+      <field type="uint8_t[4]" name="value_low">Lower 32 bits of current value. For 32-bit types, this is the entire value. For 64-bit types, this is the least significant word.</field>
+      <field type="uint8_t[4]" name="min_low">Lower 32 bits of minimum value (for CONTINUOUS/DISCRETE types).</field>
+      <field type="uint8_t[4]" name="max_low">Lower 32 bits of maximum value (for CONTINUOUS/DISCRETE types).</field>
+      <field type="uint8_t" name="control_mode" enum="GENERIC_PAYLOAD_CONTROL_MODE">Control behavior of the function.</field>
+      <field type="uint32_t" name="timeout_ms" invalid="0">Timeout in milliseconds for MOMENTARY mode. 0 means use default timeout (100ms).</field>
+      <field type="char[32]" name="name">Name of the function for UI display. NULL terminated string.</field>
+      <field type="char[16]" name="units">Units for the value field (optional). NULL terminated string.</field>
+      <extensions/>
+      <field type="uint8_t[4]" name="value_high">Upper 32 bits of current value. Only used for 64-bit types.</field>
+      <field type="uint8_t[4]" name="min_high">Upper 32 bits of minimum value. Only used for 64-bit types.</field>
+      <field type="uint8_t[4]" name="max_high">Upper 32 bits of maximum value. Only used for 64-bit types.</field>
+    </message>
+    <message id="400" name="GENERIC_PAYLOAD_TELEMETRY_STATUS">
+      <description>Generic payload telemetry channel status.</description>
+      <field type="uint16_t" name="index">Index of this telemetry channel on the generic payload.</field>
+      <field type="uint8_t" name="value_type" enum="GENERIC_PAYLOAD_VALUE_TYPE">Data type for value/min/max fields.</field>
+      <field type="uint8_t" name="update_rate" units="Hz" invalid="0">Rate at which the value is updated (0 if unknown).</field>
+      <field type="uint8_t[4]" name="value_low">Lower 32 bits of current value. For 32-bit types, this is the entire value. For 64-bit types, this is the least significant word.</field>
+      <field type="uint8_t[4]" name="min_low">Lower 32 bits of minimum value. Used for scaling/display.</field>
+      <field type="uint8_t[4]" name="max_low">Lower 32 bits of maximum value. Used for scaling/display.</field>
+      <field type="char[32]" name="name">Name of the telemetry channel for UI display. NULL terminated string.</field>
+      <field type="char[16]" name="units">Units for the value field (optional). NULL terminated string.</field>
+      <extensions/>
+      <field type="uint8_t[4]" name="value_high">Upper 32 bits of current value. Only used for 64-bit types.</field>
+      <field type="uint8_t[4]" name="min_high">Upper 32 bits of minimum value. Only used for 64-bit types.</field>
+      <field type="uint8_t[4]" name="max_high">Upper 32 bits of maximum value. Only used for 64-bit types.</field>
+    </message>
+    <message id="401" name="GENERIC_PAYLOAD_FUNCTION_CONTROL">
+      <description>Command to control a generic payload function.</description>
+      <field type="uint16_t" name="index">Index of this function on the generic payload.</field>
+      <field type="uint8_t" name="value_type" enum="GENERIC_PAYLOAD_VALUE_TYPE">Data type for value field.</field>
       <field type="uint8_t" name="enable">0: Disable, 1: Enable</field>
-      <field type="uint16_t" name="function_count">Total number of functions on the generic payload that can be controlled.</field>
+      <field type="uint8_t[4]" name="value_low">Lower 32 bits of value to set. For 32-bit types, this is the entire value. For 64-bit types, this is the least significant word.</field>
+      <extensions/>
+      <field type="uint8_t[4]" name="value_high">Upper 32 bits of value to set. Only used for 64-bit types.</field>
+    </message>
+
+    <message id="402" name="GENERIC_PAYLOAD_TELEMETRY_DATA">
+      <description>Lightweight telemetry data message for streaming values.</description>
+      <field type="uint16_t" name="index">Index of this telemetry channel on the generic payload.</field>
+      <field type="uint8_t[4]" name="value_low">Lower 32 bits of current value. For 32-bit types, this is the entire value. For 64-bit types, this is the least significant word.</field>
+      <extensions/>
+      <field type="uint8_t[4]" name="value_high">Upper 32 bits of current value. Only used for 64-bit types.</field>
     </message>
     <message id="414" name="GROUP_START">
       <description>Emitted during mission execution when control reaches MAV_CMD_GROUP_START.</description>
